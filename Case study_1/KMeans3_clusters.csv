@@ -1,0 +1,13 @@
+Num_typeTransformed,,,,,
+Row Labels,Count,Average ,StdDev ,Min ,Max 
+cluster-1,4897,0.507648152,1.511396708,-0.44,22.774
+cluster-2,2075,-0.167938795,0.676191899,-0.44,7.415
+cluster-3,10491,-0.203736345,0.583691409,-0.44,14.749
+Grand Total,17463,4.69564E-06,1.000006067,-0.44,22.774
+,,,,,
+WeekFirstPurch_transformed,,,,,
+Row Labels,Count,Average ,StdDev,Min ,Max 
+cluster-1,4897,0.592447008,1.260630173,-1.216,6.22
+cluster-2,2075,-0.190725783,0.790461215,-1.209,4.39
+cluster-3,10491,-0.238819083,0.75583781,-1.216,4.899
+Grand Total,17463,3.43584E-07,1.000001362,-1.216,6.22
