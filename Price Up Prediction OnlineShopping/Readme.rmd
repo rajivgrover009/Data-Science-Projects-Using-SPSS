@@ -1,0 +1,11 @@
+#Price Change Prediction of Electronics in online shopping
+
+
+Price of a new, in trend, electronic item depends on variety of attributes. Many website offer great deals to lure consumers to buy the product from their website. For the consumer, it is always a question that when is the right time to buy the product. In other words, is there way to know if the price of an item would increase in say next couple of weeks given the set of attributes? In this project, i will try to analyze if it is possible to predict that the price of an item would go up when the price change is recorded next time on the item. The goal is to predict the probability that the next time price information is recorded the price will increase. In particular, we are interested in finding the products most likely to see a price increase. In other words, objective is to insure that a Shopper buys products when the Price is Right We also know when the price information will be collected next.
+
+##Background:
+theBargain is an eCommerce Predictive Analytics company with an objective to insure that a Shopper buys products when the Price is Right. Their tool helps the shoppers to quickly focus on the best product choices available in the market. Our "Price Guarantee Engine" takes into consideration a comprehensive set of reliable and up-to-date data.
+
+##Goal:
+The goal is to accurately capture the 10% of most likely price increases (PriceUp=1). The performance measure used will be top 10% lift. This is computed by sorting the records according to PriceUp (probabilities), and counting how many among the  10% records with the highest probabilities were actually price increases. The higher the value, better the score.
+
