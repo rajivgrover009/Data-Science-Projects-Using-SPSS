@@ -1,0 +1,172 @@
+---
+title: "ST_DA_exercise"
+author: "Rajiv Kumar"
+date: "Tuesday, January 13, 2016"
+output: word_document
+---
+###Background:
+
+1. ~700k rows of ranking data (App_ID Country Date Hour Device Rank)
+2. ~ 3.5k rows of download data (App_ID Country Date Device Downloads)
+
+The rank of an app for a given (country, date, hour, device) combination represents its position in an ordered list of app_ids associated with the combination.
+
+For example, in USA, on 5/13/14 at 20:00:00 hours, the apps on iPhone top free charts had the following order [454, 1549, 2171]. App 454 was rank 1, app 1549 was rank 2 and app 2171 was rank 3.
+ 
+We'd like you to try and answer the following questions for these data sets (below):
+```{r echo=FALSE}
+options(warn=-1)
+options(message=FALSE)
+options(tidy=TRUE)
+options(fig.height=12)
+options(fig.width=12)
+
+suppressMessages(library(ggplot2)) # To draw Plots
+suppressMessages(library(tidyr))   # To wrangle our data, if required
+suppressMessages(library(dplyr))  # To wrangle our data,if required
+library(lubridate)
+```
+
+
+##Question#1:What are your initial observations about the ranking and download datasets?
+
+###Answer: 
+
+First of all lets load the data sets.
+
+```{r}
+#read the given download info csv file
+
+
+df_parsed_log <- read.csv(file= file.path("E:","OPT/JobSearch/Assesment/dataset.csv"))
+df_parsed_log$read<-!is.na(df_parsed_log$status)
+str(df_parsed_log)
+op <- options(digits.secs=6)
+options(op)
+
+df_parsed_log$sent_month<-month(strptime(df_parsed_log$send_time,'%Y-%m-%d %H:%M:%OS'),label=TRUE)
+
+df_parsed_log$read_month<-month(as.Date(df_parsed_log$Read_at,format='%d/%b/%Y:%H:%M:%S'),label=TRUE)
+
+
+
+head(df_parsed_log)
+str(df_parsed_log)
+
+
+df_parsed_log_by_media<-df_parsed_log %>% group_by(MediaType) %>% summarise(Total_read=sum(read=='TRUE',na.rm=TRUE))
+head(df_parsed_log_by_media)
+df_parsed_log_by_media_top10<-head(arrange(df_parsed_log_by_media,desc(Total_read)),10)
+# Top 10 most popular media type
+ggplot(aes(x=MediaType,y=Total_read),data=arrange(df_parsed_log_by_media_top10,Total_read))+geom_bar(stat="identity")+
+        theme(axis.text.x=element_text(angle=90, hjust=1))
+`````
+Lets see the distribution of populare media types each month
+```{r}
+df_parsed_log_by_media_month<-df_parsed_log %>% group_by(MediaType,read_month) %>% summarise(Total_read=sum(read=='TRUE',na.rm=TRUE))
+tail(df_parsed_log)
+df_parsed_log_by_media_month_top10<-head(arrange(df_parsed_log_by_media_month,desc(Total_read,na.rm=TRUE)),30)
+
+ggplot(aes(x=MediaType,y=Total_read),data=subset(df_parsed_log_by_media_month_top10,Total_read>0))+geom_bar(stat="identity")+
+        facet_wrap(~read_month)+
+        theme(axis.text.x=element_text(angle=90, hjust=1))
+
+
+```
+
+Lets see the distribution by article type
+```{r}
+df_parsed_log_by_topic<-df_parsed_log %>% group_by(Topic) %>% summarise(Total_read=sum(read=='TRUE',na.rm=TRUE))
+tail(df_parsed_log)
+df_parsed_log_by_Topic_top10<-head(arrange(df_parsed_log_by_topic,desc(Total_read,na.rm=TRUE)),10)
+
+ggplot(aes(x=Topic,y=Total_read),data=subset(df_parsed_log_by_Topic_top10,Total_read>0))+geom_bar(stat="identity")+
+        theme(axis.text.x=element_text(angle=90, hjust=1))
+```
+
+
+
+```{r}
+str(df_parsed_log)
+df_parsed_log_by_topic_month_rnr<-df_parsed_log %>% group_by(Topic) %>% summarise(Total_read=sum(read=='TRUE',na.rm=TRUE),Total_not_read=sum(read=='FALSE',na.rm=TRUE))
+tail(df_parsed_log_by_topic_month_rnr)
+df_parsed_log_by_Topic_month_top10_rnr<-head(arrange(df_parsed_log_by_topic_month_rnr,desc(Total_read,na.rm=TRUE)),10)
+
+ggplot(aes(x=Topic,y=Total_read),data=subset(df_parsed_log_by_Topic_month_top10_rnr,Total_read>0))+geom_bar(stat="identity")+
+        
+        theme(axis.text.x=element_text(angle=90,hjust=1))
+
+```
+
+
+```{r}
+df_parsed_log_by_topic_month<-df_parsed_log %>% group_by(Topic,read_month) %>% summarise(Total_read=sum(read=='TRUE',na.rm=TRUE))
+tail(df_parsed_log)
+df_parsed_log_by_topic_month<-df_parsed_log_by_topic_month[df_parsed_log_by_topic_month$Total_read>0,]
+library(plyr)
+
+df_parsed_log_by_Topic_month_top10<-head(arrange(df_parsed_log_by_topic_month,desc(Total_read)),30)
+
+
+df_parsed_log_by_Topic_month_top10<-(arrange(df_parsed_log_by_topic_month,desc(Total_read)))
+
+
+df_parsed_log_by_Topic_month_top10<-bind_rows(head(arrange(subset(df_parsed_log_by_topic_month,read_month=='Jan'),desc(Total_read)),10),
+head(arrange(subset(df_parsed_log_by_topic_month,read_month=='Feb'),desc(Total_read)),10),
+head(arrange(subset(df_parsed_log_by_topic_month,read_month=='Mar'),desc(Total_read)),10))
+View(df_parsed_log_by_Topic_month_top10)
+
+articles_read<-ggplot(aes(x=Topic,y=Total_read),data=subset(df_parsed_log_by_Topic_month_top10,Total_read>0))+geom_bar(stat="identity")+
+        facet_wrap(~read_month)+
+        theme(axis.text.x=element_text(angle=90,hjust=1))
+
+```
+
+Lets see how many articles of each type were sent
+```{r}
+detach("package:plyr", unload=TRUE) 
+library(plyr)
+df_parsed_log_by_topicsent_month<-df_parsed_log %>% group_by(Topic,sent_month) %>% summarise(Total_sent=n())
+
+
+df_parsed_log_by_topicsent_month_top10<-bind_rows(head(arrange(subset(df_parsed_log_by_topicsent_month,sent_month=='Jan'),desc(Total_sent)),10),
+head(arrange(subset(df_parsed_log_by_topicsent_month,sent_month=='Feb'),desc(Total_sent)),10) ,
+head(arrange(subset(df_parsed_log_by_topicsent_month,sent_month=='Mar'),desc(Total_sent)),10))
+
+
+View(df_parsed_log_by_topicsent_month_top10)
+article_sent<-ggplot(aes(x=Topic,y=Total_sent),data=df_parsed_log_by_topicsent_month_top10)+geom_bar(stat="identity")+
+        facet_wrap(~sent_month)+
+        theme(axis.text.x=element_text(angle=90,hjust=1))
+
+```
+
+Arrange the plots to get better idea.
+
+```{r}
+require(gridExtra)
+grid.arrange(articles_read,article_sent,nrow=2)
+```
+ in order to calculate the percentage, lets inner join these two data sets
+ 
+ 
+```{r}
+df_inner_joined<-(inner_join(df_parsed_log_by_topicsent_month_top10,df_parsed_log_by_Topic_month_top10,by=c("Topic","sent_month"="read_month")))
+```
+
+```{r}
+df_inner_joined$likelihood<-df_inner_joined$Total_read / df_inner_joined$Total_sent
+
+View(df_inner_joined)
+```
+Lets draw the likelihoods
+```{r}
+ggplot(aes(x=Topic,y=likelihood),data=df_inner_joined)+
+        geom_bar(stat="identity")+
+        facet_wrap(~sent_month)+
+        theme(axis.text.x=element_text(angle=90,hjust=1))
+
+```
+
+
+
